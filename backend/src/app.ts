@@ -11,9 +11,12 @@ import { setupSwagger } from './utils/swagger.js';
 import { env } from './config/env.js';
 import { errorHandler, logger } from './middleware/error.js';
 import express from 'express';
-import helmet from 'helmet';
+import helmetModule from 'helmet';
 import cors from 'cors';
-import rateLimit from 'express-rate-limit';
+import rateLimitModule from 'express-rate-limit';
+
+const helmet: any = (helmetModule as any).default ?? helmetModule;
+const rateLimit: any = (rateLimitModule as any).default ?? rateLimitModule;
 
 const app = express();
 app.set('trust proxy', 1);
