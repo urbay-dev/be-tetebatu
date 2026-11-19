@@ -1,4 +1,4 @@
-export function TravelIcon({ kind }: { kind: string }) {
+export function TravelIcon({ kind, className = '' }: { kind: string; className?: string }) {
   const paths: Record<string, React.ReactNode> = {
     'tourist-attractions': (
       <>
@@ -68,10 +68,12 @@ export function TravelIcon({ kind }: { kind: string }) {
       </>
     ),
   };
+  const icon = kind === 'car-driver' ? 'car-drivers' : kind === 'motorcycle-taxi' ? 'motorcycle-taxis' : kind;
   return (
     <svg
       width="24"
       height="24"
+      className={className}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -80,7 +82,7 @@ export function TravelIcon({ kind }: { kind: string }) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      {paths[kind] ?? paths['tourist-attractions']}
+      {paths[icon] ?? paths['tourist-attractions']}
     </svg>
   );
 }
