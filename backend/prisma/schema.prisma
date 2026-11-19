@@ -1,0 +1,281 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(EDITOR)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articles Article[]
+}
+
+model Area {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  services    Service[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+}
+
+model ServiceCategory {
+  id          String    @id @default(cuid())
+  name        String
+  nameEn      String
+  slug        String    @unique
+  description String?
+  descriptionEn String?
+  icon        String?
+  image       String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services Service[]
+
+  @@index([slug])
+}
+
+enum ServiceStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Service {
+  id                String        @id @default(cuid())
+  name              String
+  slug              String        @unique
+  description       String?       @db.Text
+  descriptionEn     String?       @db.Text
+  shortDescription  String?       @db.Text
+  shortDescriptionEn String?      @db.Text
+  categoryId        String
+  category          ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  areaId            String?
+  area              Area?           @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  address           String?
+  latitude          Decimal?       @db.Decimal(10, 8)
+  longitude         Decimal?       @db.Decimal(11, 8)
+  googleMapsUrl     String?
+  directions        String?        @db.Text
+  directionsEn      String?        @db.Text
+  openingHours      Json?
+  vehicleType       String?
+  passengerCapacity Int?
+  status            ServiceStatus @default(DRAFT)
+  isFeatured        Boolean       @default(false)
+  isRecommended     Boolean       @default(false)
+  sortOrder         Int           @default(0)
+  metaTitle         String?
+  metaDescription   String?
+  publishedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  images    ServiceImage[]
+  contacts  ServiceContact[]
+  facilities ServiceFacility[]
+  features   ServiceFeature[]
+  prices     ServicePrice[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([categoryId])
+  @@index([areaId])
+}
+
+model ServiceImage {
+  id          String  @id @default(cuid())
+  serviceId   String
+  service     Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  bucket      String
+  storagePath String
+  url         String
+  alt         String?
+  altEn       String?
+  caption     String?
+  captionEn   String?
+  isPrimary   Boolean @default(false)
+  sortOrder   Int     @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([serviceId])
+}
+
+enum ContactType {
+  WHATSAPP
+  PHONE
+  EMAIL
+  WEBSITE
+  INSTAGRAM
+  FACEBOOK
+  OTHER
+}
+
+model ServiceContact {
+  id        String      @id @default(cuid())
+  serviceId String
+  service   Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  type      ContactType
+  label     String?
+  value      String
+  isPrimary Boolean     @default(false)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([serviceId])
+}
+
+model ServiceFacility {
+  id        String  @id @default(cuid())
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  name      String
+  nameEn    String
+  icon      String?
+  createdAt DateTime @default(now())
+
+  @@index([serviceId])
+}
+
+model ServiceFeature {
+  id          String  @id @default(cuid())
+  serviceId   String
+  service     Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  name        String
+  nameEn      String
+  description String? @db.Text
+  descriptionEn String? @db.Text
+  createdAt   DateTime @default(now())
+
+  @@index([serviceId])
+}
+
+enum PriceType {
+  FIXED
+  RANGE
+  STARTING_FROM
+  FREE
+  CONTACT_FOR_PRICE
+}
+
+model ServicePrice {
+  id        String    @id @default(cuid())
+  serviceId String
+  service   Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  label     String
+  labelEn   String
+  type      PriceType
+  minPrice  Decimal?  @db.Decimal(12, 2)
+  maxPrice  Decimal?  @db.Decimal(12, 2)
+  currency  String    @default("IDR")
+  unit      String?
+  unitEn    String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([serviceId])
+}
+
+enum ArticleType {
+  ARTICLE
+  GUIDE
+  EVENT
+  CULTURE
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Article {
+  id              String        @id @default(cuid())
+  title           String
+  titleEn         String
+  slug            String        @unique
+  excerpt         String?       @db.Text
+  excerptEn       String?       @db.Text
+  content         String        @db.Text
+  contentEn       String        @db.Text
+  coverImage      String?
+  type            ArticleType   @default(ARTICLE)
+  status          ArticleStatus @default(DRAFT)
+  authorId        String?
+  author          User?         @relation(fields: [authorId], references: [id])
+  metaTitle       String?
+  metaDescription String?
+  publishedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  images ArticleImage[]
+
+  @@index([slug])
+  @@index([status])
+}
+
+model ArticleImage {
+  id          String  @id @default(cuid())
+  articleId   String
+  article     Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  bucket      String
+  storagePath String
+  url         String
+  caption     String?
+  captionEn   String?
+  sortOrder   Int     @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([articleId])
+}
+
+model HomepageSection {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  title     String
+  titleEn   String
+  subtitle  String?
+  subtitleEn String?
+  content   Json
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
