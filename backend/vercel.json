@@ -1,6 +1,4 @@
 {
-  "version": 2,
-  "framework": null,
-  "installCommand": "npm ci",
-  "buildCommand": "prisma generate && prisma migrate deploy && npm run build"
+  "$schema": "openapi.vercel.sh/vercel.json",
+  "framework": "express"
 }
