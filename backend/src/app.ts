@@ -23,7 +23,7 @@ app.set('trust proxy', 1);
 
 const allowedOrigins = (env.FRONTEND_URL ?? '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/+$/, ''))
   .filter(Boolean);
 
 // Security Middlewares
